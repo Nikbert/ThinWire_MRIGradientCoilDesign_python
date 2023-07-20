@@ -19,4 +19,6 @@ CylindricalShielded.py.
 
 A publication by Sebastian Littin et al. describing the basic ideas of the matlab version of this code and gradient coil design in general can be found here: https://www.frontiersin.org/articles/10.3389/fphy.2021.699468/full
 
+The translation is still a work in progress and has several bugs. Any bug report and help with the translation is welcome.
+
 Niklas Wehkamp
