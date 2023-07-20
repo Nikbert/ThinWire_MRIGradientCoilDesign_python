@@ -1,5 +1,5 @@
-# ThinWire_MRIGradientCoilDesign
-A gradient coil design tool for Magnetic resonance imaging (MRI)
+# ThinWire_MRIGradientCoilDesign_python
+A python fork of the matlab based "ThinWire_MRIGradientCoilDesign" gradient coil design tool for Magnetic resonance imaging (MRI)
 
 This code demonstrates the use of thin wires to approximate a current
 density. In gradient coil design for MRI usually only the z-component
@@ -11,13 +11,12 @@ derive a ralizable coil design.
 This method may be used for simple geometries. However, no generalization
 for arbitrary surfaces (yet).
 
-The code is written in MATLAB. However, no special toolboxes are used to 
-make it compatible with Octave.
+The code is written in Python 3, relying on standard python libaries such as numpy and matplotlib. 
 
-An explanatory introduction is given in ThinWire_Demo.m. Two basic coils
-are described in the scripts Cylindrical_SingleLayer.m and 
-CylindricalShielded.m.
+An explanatory introduction is given in ThinWire_Demo.py. Two basic coils
+are described in the scripts Cylindrical_SingleLayer.py and 
+CylindricalShielded.py.
 
-A publication describing the basic ideas of this code and gradient coil design in general can be found here: https://www.frontiersin.org/articles/10.3389/fphy.2021.699468/full
+A publication by Sebastian Littin et al. describing the basic ideas of the matlab version of this code and gradient coil design in general can be found here: https://www.frontiersin.org/articles/10.3389/fphy.2021.699468/full
 
-Sebastian Littin
+Niklas Wehkamp
