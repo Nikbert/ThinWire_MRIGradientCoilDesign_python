@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib.pyplot as plt
+import Make_Target as mt  # Assuming you have the Make_Target module
 
 # coil description: Cylindrical unshielded coil
 
@@ -20,7 +22,6 @@ CoilDefinition[1] = {'num_elements': elm_angle.shape}
 elm_angle_shift = np.roll(elm_angle, -1, axis=0)
 
 
-import numpy as np
 
 # Define Cylindrical Main Surface
 
@@ -65,7 +66,6 @@ if plot_all == 1:
 
 
 # Definition of target points in a 3D-volume
-import Make_Target as mt  # Assuming you have the Make_Target module
 
 # Define main target
 TargetDefinition = {}
@@ -198,7 +198,6 @@ w_full = np.block([[w_ext, np.zeros_like(w_ext)], [np.zeros_like(w_ext), w_ext]]
 ElementCurrents_Reg_Weigh = TikhonovReg_Weigh(E_Mat, btarget, 5e-1, w_full)
 
 #%% Plot currents in 2D
-import matplotlib.pyplot as plt
 
 n_cont = 15
 
@@ -224,7 +223,6 @@ for nP in range(2):
 plt.show()
 
 #%% Plot multi layer contours
-import matplotlib.pyplot as plt
 
 nP = 1
 ElmtsPlot = ElementCurrents[nP - 1].reshape(CoilDefinition[nP - 1]['num_elements'][0], CoilDefinition[nP - 1]['num_elements'][1] - 1)
@@ -256,8 +254,6 @@ plt.show()
 
 
 #%% 3D Plot of the contours
-import numpy as np
-import matplotlib.pyplot as plt
 
 plt.figure(figsize=(10, 10))
 plt.title('3D Coil')
