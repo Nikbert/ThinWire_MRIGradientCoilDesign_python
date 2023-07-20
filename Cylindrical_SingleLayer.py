@@ -1,8 +1,15 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import Make_Target as Make_Target
+import ThinWireSensitivity as tws
+
 # coil description: Cylindrical unshielded coil
 plot_all = 1  # set to 1, to optionally plot intermediate steps
 
 # define coil parameters of the matrix coil: segments_angular, half_length, len_step
-CoilDefinition.Partitions = 1
+CoilDefinition = {}
+CoilDefinition['Partitions'] = 1
 segments_angular = 56
 half_length = 0.45  # 450mm
 len_step = 0.015  # 15mm
@@ -10,26 +17,27 @@ r_coil = 0.4  # 800mm coil diameter
 
 arc_angle = 360 / segments_angular
 elm_angle, elm_z = np.mgrid[0:segments_angular * arc_angle:arc_angle, -half_length:half_length:len_step]
-CoilDefinition[0].num_elements = elm_angle.shape
+CoilDefinition[0] = {}
+CoilDefinition[0]['num_elements'] = elm_angle.shape
 elm_angle_shift = np.roll(elm_angle, -1, axis=0)
 
 # Define Cylindrical Surface
-CoilDefinition[0].thin_wire_nodes_start = np.column_stack(
+CoilDefinition[0]['thin_wire_nodes_start'] = np.column_stack(
     [np.cos(np.deg2rad(elm_angle)).ravel() * r_coil, np.sin(np.deg2rad(elm_angle)).ravel() * r_coil,
      elm_z.ravel()])
-CoilDefinition[0].thin_wire_nodes_stop = np.column_stack(
+CoilDefinition[0]['thin_wire_nodes_stop'] = np.column_stack(
     [np.cos(np.deg2rad(elm_angle_shift)).ravel() * r_coil, np.sin(np.deg2rad(elm_angle_shift)).ravel() * r_coil,
      elm_z.ravel()])
-CoilDefinition[0].num_elements = elm_angle.shape
+CoilDefinition[0]['num_elements'] = elm_angle.shape
 
 # possibility to plot thin wire elements
 if plot_all == 1:
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    for n in range(len(CoilDefinition[0].thin_wire_nodes_start)):
-        ax.plot([CoilDefinition[0].thin_wire_nodes_start[n, 0], CoilDefinition[0].thin_wire_nodes_stop[n, 0]],
-                [CoilDefinition[0].thin_wire_nodes_start[n, 1], CoilDefinition[0].thin_wire_nodes_stop[n, 1]],
-                [CoilDefinition[0].thin_wire_nodes_start[n, 2], CoilDefinition[0].thin_wire_nodes_stop[n, 2]])
+    for n in range(len(CoilDefinition[0]['thin_wire_nodes_start'])):
+        ax.plot([CoilDefinition[0]['thin_wire_nodes_start'][n][0], CoilDefinition[0]['thin_wire_nodes_stop'][n][0]],
+                [CoilDefinition[0]['thin_wire_nodes_start'][n][1], CoilDefinition[0]['thin_wire_nodes_stop'][n][1]],
+                [CoilDefinition[0]['thin_wire_nodes_start'][n][2], CoilDefinition[0]['thin_wire_nodes_stop'][n][2]])
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
@@ -37,8 +45,8 @@ if plot_all == 1:
     plt.show()
 
 # Some definitions for 3D contour plotting...
-CoilDefinition[0].Radius = r_coil
-CoilDefinition[0].Length = half_length * 2
+CoilDefinition[0]['Radius'] = r_coil
+CoilDefinition[0]['Length'] = half_length * 2
 
 # Definition of main target points in a 3D-volume
 TargetDefinition = {
@@ -50,7 +58,7 @@ TargetDefinition = {
     'strength': 5e-3,
     'direction': 'y'
 }
-target_points = Make_Target(TargetDefinition)
+target_points = Make_Target.Make_Target(TargetDefinition)
 
 # plot target
 if plot_all == 1:
@@ -77,7 +85,7 @@ kp = len(x1)
 
 # Calculate sensitivity matrix
 CoilDefinition[0]['StreamDirection'] = 2
-Sensitivity = ThinWireSensitivity(CoilDefinition, Target)
+Sensitivity = tws.ThinWireSensitivity(CoilDefinition, Target)
 
 # Calculate an unregularized Solution
 btarget = target_points['field']
