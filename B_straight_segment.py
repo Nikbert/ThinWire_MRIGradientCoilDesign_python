@@ -1,6 +1,9 @@
 import numpy as np
 
 def B_straight_segment(Pstart, Pend, Points):
+    print('Pstart',Pstart)
+    print('Pend',Pend)
+    print('Points.shape',Points.shape)
     """
     Calculate the magnetic field of a straight wire defined by its start and end points at the given locations.
     
@@ -22,12 +25,18 @@ def B_straight_segment(Pstart, Pend, Points):
         B = np.zeros(3)
     else:
         a = Pend[np.newaxis, :] - Points
+        print('a',a.shape)
         b = Pstart[np.newaxis, :] - Points
+        print('b',b.shape)
         c = Pend[np.newaxis, :] - Pstart[np.newaxis, :]
+        print('c',c.shape)
         
         an = normalize(a)
+        print('an',an.shape)
         bn = normalize(b)
+        print('bn',bn.shape)
         cn = normalize(c)
+        print('cn',cn.shape)
         
         d = np.linalg.norm(np.cross(a, cn), axis=1)
         IndNon0 = np.where(d > epsilon)[0]
@@ -66,10 +75,18 @@ def vcross(v1, v2):
     """
     return np.cross(v1, v2)
 
-def normalize(vin):
-    """
-    Normalized vector (assuming the second dimension to be the vector coordinates).
-    """
-    vn = np.sqrt(np.dot(vin, vin.T))
-    return vin / vn[:, np.newaxis]
+#def normalize(vin):
+#    """
+#    Normalized vector (assuming the second dimension to be the vector coordinates).
+#    """
+#    vn = np.sqrt(np.dot(vin, vin.T))
+#    print("vin.shape",vin.shape)
+#    print("vn.shape",vn.shape)
+#    return vin / vn[:, np.newaxis]
 
+def normalize(vin):
+    vn = np.sqrt(np.sum(vin * vin, axis=1))
+    vout = vin / vn[:, np.newaxis]
+    print("vin.shape",vin.shape)
+    print("vn.shape",vn.shape)
+    return vout
