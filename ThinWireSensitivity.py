@@ -24,7 +24,7 @@ def ThinWireSensitivity(CoilDefinition, Target):
             
             #Blead1 = bss.B_straight_segment(CoilDefinition[nP]['thin_wire_nodes_start'][e , :], CoilDefinition[nP ]['thin_wire_nodes_stop'][e , :], Target['Points'])
             Blead1 = bss.B_straight_segment(CoilDefinition[nP - 1]['thin_wire_nodes_start'][e - 1, :], CoilDefinition[nP - 1]['thin_wire_nodes_stop'][e - 1, :], Target['Points'])
-            print('Blead1',Blead1)
+            #print('Blead1',Blead1)
             ElementFields[:, e - 1] = Blead1[:, 2]
             
             if np.floor(e * 10 / (CoilDefinition[nP - 1]['num_elements'][0] * CoilDefinition[nP - 1]['num_elements'][1])) != np.floor((e - 1) * 10 / (CoilDefinition[nP - 1]['num_elements'][0] * CoilDefinition[nP - 1]['num_elements'][1])):
