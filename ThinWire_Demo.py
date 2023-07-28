@@ -188,7 +188,7 @@ ElementFields_Add3D = np.repeat(eye_ang[:, :, np.newaxis], elm_angle.shape[1], a
 ElementFields_Add = ElementFields_Add3D.reshape(-1, elm_angle.shape[1])
 TargetFields_Add = np.zeros(elm_angle.shape[0])
 
-ElementFields_Balance = np.vstack((Sensitivity.ElementFields, ElementFields_Add*5e-4))
+ElementFields_Balance = np.vstack((Sensitivity[0]['ElementFields'], ElementFields_Add*5e-4))
 TargetField_Balance = np.concatenate((btarget, TargetFields_Add))
 
 ElementCurrents_Balance = TikhonovReg(ElementFields_Balance, TargetField_Balance, 0.00005)
