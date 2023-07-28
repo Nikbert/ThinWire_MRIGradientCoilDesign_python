@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import Make_Target as Make_Target
 from ThinWireSensitivity import ThinWireSensitivity
+from TikhonovReg import TikhonovReg
 
 # coil description: Cylindrical unshielded coil
 
@@ -79,9 +80,9 @@ kp = len(x1)
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
-print("len(CoilDefinition[0]['thin_wire_nodes_start'])",len(CoilDefinition[0]['thin_wire_nodes_start'][0][:]))
-print("(CoilDefinition[0]['thin_wire_nodes_start'])",CoilDefinition[0]['thin_wire_nodes_start'][:][1])
-print("(CoilDefinition[0]['thin_wire_nodes_stop'])",CoilDefinition[0]['thin_wire_nodes_stop'][:][1])
+#print("len(CoilDefinition[0]['thin_wire_nodes_start'])",len(CoilDefinition[0]['thin_wire_nodes_start'][0][:]))
+#print("(CoilDefinition[0]['thin_wire_nodes_start'])",CoilDefinition[0]['thin_wire_nodes_start'][:][1])
+#print("(CoilDefinition[0]['thin_wire_nodes_stop'])",CoilDefinition[0]['thin_wire_nodes_stop'][:][1])
 #plt.plot(CoilDefinition[0]['thin_wire_nodes_start'][:][0], CoilDefinition[0]['thin_wire_nodes_stop'][:][1]) #, 
 for n in range(len(CoilDefinition[0]['thin_wire_nodes_start'])):
     #ax.plot(CoilDefinition[0]['thin_wire_nodes_start'][n][0], CoilDefinition[0]['thin_wire_nodes_stop'][n][0]) #, 
@@ -125,9 +126,12 @@ print('CoilDefinition' , CoilDefinition)
 
 Sensitivity = ThinWireSensitivity(CoilDefinition, Target)
 
+print('Sensitivity',Sensitivity)
+print('Sensitivity{ElementtFields}',Sensitivity[0]['ElementFields'])
 btarget = target_points['field']
-ElementCurrents = np.linalg.pinv(Sensitivity['ElementFields']) @ btarget
-ResultingField = Sensitivity['ElementFields'] @ ElementCurrents
+print('btarget ',btarget )
+ElementCurrents = np.linalg.pinv(Sensitivity[0]['ElementFields']) @ btarget
+ResultingField = Sensitivity[0]['ElementFields'] @ ElementCurrents
 
 # plot the unregularized current distribution
 fig = plt.figure()
@@ -140,7 +144,8 @@ fig.colorbar(im)
 plt.show()
 
 
-ElementCurrents = TikhonovReg(Sensitivity['ElementFields'], btarget, 0.0077)
+ElementCurrents = TikhonovReg(Sensitivity[0]['ElementFields'], btarget, 0.0077)
+#ElementCurrents = TikhonovReg(Sensitivity['ElementFields'], btarget, 0.0077)
 
 # plot the Tikhonov-regularized current distribution
 fig = plt.figure()
@@ -158,7 +163,10 @@ ElementCurrents_Balance_reshape = ElementCurrents.reshape(elm_angle.shape)
 Stream_Reg = np.cumsum(ElementCurrents_Balance_reshape[:,::-1], axis=1)
 Stream_Reg_rev = np.cumsum(ElementCurrents_Balance_reshape, axis=1)
 
-Stream = np.zeros(Stream_Reg.shape[0], Stream_Reg.shape[1]+1)
+#test = Stream_Reg.shape[1]
+#print('Stream_Reg.shape[0]',test.type)
+Stream = np.zeros((Stream_Reg.shape[0], Stream_Reg.shape[1]+1))
+#Stream = np.zeros(Stream_Reg.shape[0], Stream_Reg.shape[1]+1)
 Stream[:,1:] = Stream_Reg/2
 Stream[:,:-1] = Stream[:,:-1] - Stream_Reg_rev[:,::-1]/2
 
