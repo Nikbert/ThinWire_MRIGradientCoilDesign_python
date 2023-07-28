@@ -50,7 +50,7 @@ def ThinWireSensitivity(CoilDefinition, Target):
     
     #for nP in range(1, CoilDefinition[0]['Partitions'] + 1):
     #for nP in range(0, CoilDefinition['Partitions'] + 1):
-    for nP in range(0, CoilDefinition['Partitions'] + 2):
+    for nP in range(0, CoilDefinition['Partitions']):
         print(f'Partition {nP}')
 
         ElementFields = np.zeros((Target['num_points'], CoilDefinition[nP]['num_elements'][0] * CoilDefinition[nP]['num_elements'][1]))
