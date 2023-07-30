@@ -1,7 +1,8 @@
+
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import Make_Target as Make_Target
+#from mpl_toolkits.mplot3d import Axes3D
+from Make_Target import Make_Target
 from ThinWireSensitivity import ThinWireSensitivity
 from TikhonovReg import TikhonovReg
 
@@ -46,7 +47,7 @@ TargetDefinition['resol_angular'] = 15
 TargetDefinition['strength'] = 5e-3
 TargetDefinition['direction'] = 'y'
 
-target_points = Make_Target.Make_Target(TargetDefinition)
+target_points = Make_Target(TargetDefinition)
 
 # plot target
 
@@ -237,7 +238,6 @@ fig.colorbar(im)
 plt.show()
 
 #%% 3D Plot of the stream function
-from mpl_toolkits.mplot3d import Axes3D
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
@@ -255,9 +255,10 @@ fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
 for i in range(len(S)):
-    sxp = r_coil * np.cos(S[i].allsegs[0][:, 0] / (CoilDefinition[nP].num_elements[1]) * 2 * np.pi)
-    syp = r_coil * np.sin(S[i].allsegs[0][:, 0] / (CoilDefinition[nP].num_elements[1]) * 2 * np.pi)
-    szp = S[i].allsegs[0][:, 1] / len(Stream[0, :]) * CoilDefinition[nP].Length - CoilDefinition[nP].Length / 2
+    sxp = r_coil * np.cos(S[i].allsegs[0][:, 0] / (CoilDefinition[nP]['num_elements'][1]) * 2 * np.pi)
+    syp = r_coil * np.sin(S[i].allsegs[0][:, 0] / (CoilDefinition[nP]['num_elements'][1]) * 2 * np.pi)
+    #syp = r_coil * np.sin(S[i].allsegs[0][:, 0] / (CoilDefinition[nP].num_elements[1]) * 2 * np.pi)
+    szp = S[i].allsegs[0][:, 1] / len(Stream[0, :]) * CoilDefinition[nP]['Length'] - CoilDefinition[nP]['Length'] / 2
     
     ax.plot(sxp, syp, szp, 'b', linewidth=1)
 
