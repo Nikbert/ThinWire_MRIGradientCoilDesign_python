@@ -42,7 +42,7 @@ CoilDefinition[0]['num_elements'] = elm_angle.shape
 TargetDefinition = {}
 TargetDefinition['shape'] = 'sphere'
 TargetDefinition['radius'] = 0.2
-TargetDefinition['resol_radial'] = 3
+TargetDefinition['resol_radial'] = 4
 TargetDefinition['resol_angular'] = 15
 TargetDefinition['strength'] = 5e-3
 TargetDefinition['direction'] = 'y'
@@ -189,6 +189,8 @@ ElementFields_Add3D = np.repeat(eye_ang[:, :, np.newaxis], elm_angle.shape[1], a
 ElementFields_Add = ElementFields_Add3D.reshape(-1, elm_angle.shape[1])
 TargetFields_Add = np.zeros(elm_angle.shape[0])
 
+print('ElementFields_Add ElementFields_Add.shape', ElementFields_Add.shape)
+print("Sensitivity[0]['ElementFIelds'].shape", Sensitivity[0]['ElementFields'].shape)
 ElementFields_Balance = np.vstack((Sensitivity[0]['ElementFields'], ElementFields_Add*5e-4))
 TargetField_Balance = np.concatenate((btarget, TargetFields_Add))
 
@@ -276,9 +278,10 @@ fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
 for i in range(len(S)):
-    sxp = r_coil * np.cos(S[i].allsegs[0][:, 0] / (CoilDefinition[nP].num_elements[1]) * 2 * np.pi)
-    syp = r_coil * np.sin(S[i].allsegs[0][:, 0] / (CoilDefinition[nP].num_elements[1]) * 2 * np.pi)
-    szp = S[i].allsegs[0][:, 1] / len(Stream[0, :]) * CoilDefinition[nP].Length - CoilDefinition[nP].Length / 2
+    sxp = r_coil * np.cos(S[i].allsegs[0][:, 0] / (CoilDefinition[nP]['num_elements'][1]) * 2 * np.pi)
+    #sxp = r_coil * np.cos(S[i].allsegs[0][:, 0] / (CoilDefinition[nP].num_elements[1]) * 2 * np.pi)
+    syp = r_coil * np.sin(S[i].allsegs[0][:, 0] / (CoilDefinition[nP]['num_elements'][1]) * 2 * np.pi)
+    szp = S[i].allsegs[0][:, 1] / len(Stream[0, :]) * CoilDefinition[nP]['Length'] - CoilDefinition[nP]['Length'] / 2
     
     ax.plot(sxp, syp, szp, 'k', linewidth=2)
 
