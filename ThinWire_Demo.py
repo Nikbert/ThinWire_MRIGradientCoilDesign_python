@@ -186,19 +186,20 @@ ax.set_ylabel('z-Axis [m]')
 fig.colorbar(im)
 plt.show()
 
-print('elm_angle.shape[0]',elm_angle.shape[1])
 eye_ang = np.eye(elm_angle.shape[1])
-print('eye_ang ',eye_ang.shape )
-ElementFields_Add3D = np.repeat(eye_ang[:, :, np.newaxis], elm_angle.shape[1], axis=2)
+ElementFields_Add3D = np.repeat(eye_ang[:, :, np.newaxis], elm_angle.shape[0], axis=2)
+print('ElementFields_Add3D.shape ',ElementFields_Add3D.shape)
 ElementFields_Add = ElementFields_Add3D.reshape(-1, elm_angle.shape[1])
-TargetFields_Add = np.zeros(elm_angle.shape[0])
+TargetFields_Add = np.zeros(elm_angle.shape[1])
 
 print('ElementFields_Add ElementFields_Add.shape', ElementFields_Add.shape)
 print("Sensitivity[0]['ElementFIelds'].shape", Sensitivity[0]['ElementFields'].shape)
-ElementFields_Balance = np.vstack((Sensitivity[0]['ElementFields'], ElementFields_Add*5e-4))
+#ElementFields_Balance = np.vstack((Sensitivity[0]['ElementFields'], ElementFields_Add*5e-4)) #this coefficient controls the relative importance of the new equations
+ElementFields_Balance = np.vstack((Sensitivity[0]['ElementFields'], ElementFields_Add.T*5e-4)) #this coefficient controls the relative importance of the new equations
+print('ElementFields_Balance.shape ',ElementFields_Balance.shape ) 
 TargetField_Balance = np.concatenate((btarget, TargetFields_Add))
-
-ElementCurrents_Balance = TikhonovReg(ElementFields_Balance, TargetField_Balance, 0.00005)
+print('TargetField_Balance.shape ',TargetField_Balance.shape )
+ElementCurrents_Balance = TikhonovReg(ElementFields_Balance, TargetField_Balance, 0.00005) #this time regularization is very different and depends on the above coefficient
 
 ResultingField_Balance = Sensitivity.ElementFields @ ElementCurrents_Balance
 
