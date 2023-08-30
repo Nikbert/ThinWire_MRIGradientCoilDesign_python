@@ -24,12 +24,6 @@ def B_straight_segment(Pstart, Pend, Points):
     if np.linalg.norm(Pstart - Pend) < epsilon:
         B = np.zeros(3)
     else:
-        #a = Pend[np.newaxis, :] - Points
-        #print('a',a)
-        #b = Pstart[np.newaxis, :] - Points
-        #print('b',b.shape)
-        #c = Pend[np.newaxis, :] - Pstart[np.newaxis, :]
-    
         # Calculate the difference matrix 'a'
         a = np.ones((Points.shape[0], 1)) * Pend - Points
     
@@ -38,7 +32,6 @@ def B_straight_segment(Pstart, Pend, Points):
     
         # Calculate the difference matrix 'c'
         c = np.ones((Points.shape[0], 1)) * Pend - np.ones((Points.shape[0], 1)) * Pstart
-
 
         #print('Pend[np.newaxis, :]',Pend[np.newaxis, :])
         #print('Pstart[np.newaxis, :]',Pstart[np.newaxis, :])
@@ -70,7 +63,6 @@ def B_straight_segment(Pstart, Pend, Points):
     
         # Calculate 'Babs'
         Babs = unit_scale * (vdot(an,cn) - vdot(bn,cn)) * inv_d #; matlab
-
         #Babs = unit_scale * (np.dot(an, cn.T) - np.dot(bn, cn.T)) * inv_d
         #Babs = unit_scale * (np.dot(an, cn) - np.dot(bn, cn)) * inv_d
     
@@ -89,27 +81,6 @@ def B_straight_segment(Pstart, Pend, Points):
         # Calculate 'B'
         B = NormDir_B * Babs[:, None]
 
-
- 
-        #d = np.linalg.norm(np.cross(a, cn), axis=1)
-        #IndNon0 = np.where(d > epsilon)[0]
-        #inv_d = np.zeros_like(d)
-        #inv_d[IndNon0] = 1. / d[IndNon0]
-        #
-        #Babs = unit_scale * (np.dot(an, cn.T) - np.dot(bn, cn.T)) * inv_d
-        ##Babs = unit_scale * (np.dot(an, cn) - np.dot(bn, cn)) * inv_d
-        #print('Babs.shape',Babs.shape)
-        #print('Babs',Babs)
-        #
-        #Dir_B = np.cross(an, cn)
-        #LenDir_B = np.linalg.norm(Dir_B, axis=1)
-        #
-        ## Fix zero norm cases
-        #NormDir_B = np.zeros_like(Dir_B)
-        #NormDir_B[IndNon0] = Dir_B[IndNon0] / LenDir_B[IndNon0, np.newaxis]
-        #
-        #B = NormDir_B * Babs[:, np.newaxis]
-    
     return B
 
 #Are the following functions used at all?  normalize is! replace?
@@ -130,22 +101,6 @@ def vcross(v1, v2):
     Cross product of two vectors (assuming the second dimension to be the vector coordinates).
     """
     return np.cross(v1, v2)
-
-#def normalize(vin):
-#    """
-#    Normalized vector (assuming the second dimension to be the vector coordinates).
-#    """
-#    vn = np.sqrt(np.dot(vin, vin.T))
-#    print("vin.shape",vin.shape)
-#    print("vn.shape",vn.shape)
-#    return vin / vn[:, np.newaxis]
-
-#def normalize(vin):
-#    vn = np.sqrt(np.sum(vin * vin, axis=1))
-#    vout = vin / vn[:, np.newaxis]
-#    print("vin.shape",vin.shape)
-#    print("vn.shape",vn.shape)
-#    return vout
 
 def normalize(x):
     norm = x / np.linalg.norm(x)
