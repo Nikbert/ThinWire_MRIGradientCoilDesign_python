@@ -1,3 +1,8 @@
+# calculates Currents approximately satisfying equation
+# TargetField = ElementFields*Currents using simple Tikhonov regularization
+# with the unity regularization matrix. Regularization parameter lambda is
+# scaled to the norm of ElementFields
+
 import numpy as np
 
 def TikhonovReg(ElementFields, TargetField, lambda_val):
@@ -17,6 +22,7 @@ def TikhonovReg(ElementFields, TargetField, lambda_val):
     G = lambda_val * np.linalg.norm(ElementFields) * np.eye(ElementFields.shape[1])
     GtG = G.T @ G
     Currents = np.linalg.pinv(AtA + GtG) @ ElementFields.T @ TargetField
+    #Currents = np.linalg.pinv(AtA + GtG) @ ElementFields.T @ TargetField
     
     return Currents
 

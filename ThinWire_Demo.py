@@ -119,9 +119,12 @@ ax.set_title('Unregularized current distribution')
 ax.set_xlabel('circumferential [rad]')
 ax.set_ylabel('z-Axis [m]')
 fig.colorbar(im)
-plt.show()
+#plt.show()
 
 ####
+#%% Calculate simple Tikhonov-regularized solution
+#% Unfortunately this results in a crrent distribution which is not
+#% realizable with closed loops...
 
 ElementCurrents = TikhonovReg(Sensitivity[0]['ElementFields'], btarget, 0.0077)
 #ElementCurrents = TikhonovReg(Sensitivity['ElementFields'], btarget, 0.0077)
@@ -137,18 +140,26 @@ fig.colorbar(im)
 plt.show()
 
 #####
-ElementCurrents_Balance_reshape = ElementCurrents.reshape(elm_angle.shape)
+### Plot the stream function and stream lines in 2D...
 
-Stream_Reg = np.cumsum(ElementCurrents_Balance_reshape[:,::-1], axis=1)
-Stream_Reg_rev = np.cumsum(ElementCurrents_Balance_reshape, axis=1)
+ElementCurrents_Balance_reshape = ElementCurrents.reshape(elm_angle.shape)
+print('elm_angle.shape',elm_angle.shape)
+
+#Stream_Reg_trash? = np.cumsum(ElementCurrents_Balance_reshape[:,::-1], axis=1)
+Stream_Reg = np.cumsum(ElementCurrents_Balance_reshape, axis=1)
 
 test = Stream_Reg.shape
-#print('Stream_Reg.shape[0]',test)
-#print('Stream_Reg',Stream_Reg)
-Stream = np.zeros((Stream_Reg.shape[0], Stream_Reg.shape[1]+1))
+print('Stream_Reg.shape[0]',test)
+print('Stream_Reg',Stream_Reg)
+Stream = np.zeros((Stream_Reg.shape[0], Stream_Reg.shape[1]))
+#Stream = np.zeros((Stream_Reg.shape[0]+1, Stream_Reg.shape[1]))
+print('Stream.shape',Stream.shape)
 #Stream = np.zeros(Stream_Reg.shape[0], Stream_Reg.shape[1]+1)
-Stream[:,1:] = Stream_Reg/2
-Stream[:,:-1] = Stream[:,:-1] - Stream_Reg_rev[:,::-1]/2
+Stream[:,:] = Stream_Reg/2
+#Stream[:-1,:] = Stream_Reg/2
+#Stream[-1,:] = Stream[:,:-1] - Stream_Reg_rev[:,::-1]/2
+#Stream[:,:-1] = Stream[:,:-1] - Stream_Reg_rev[:,::-1]/2
+#???? rev ??? !!!
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
@@ -156,13 +167,19 @@ im = ax.imshow(Stream, aspect='auto', cmap='jet')
 cont_max = np.max(Stream)*0.98   #!!!Attention weird hard coded constant??!!!
 print('strange cont_max',cont_max)
 n_cont = 15
-cont = ax.contour(Stream.T, levels=np.arange(-cont_max, cont_max, 2*cont_max/n_cont), colors='k', linewidths=2)
+cont = ax.contour(Stream, levels=np.arange(-cont_max, cont_max, 2*cont_max/n_cont), colors='k', linewidths=2)
+#cont = ax.contour(Stream.T, levels=np.arange(-cont_max, cont_max, 2*cont_max/n_cont), colors='k', linewidths=2)
 ax.set_title('Stream function from integrating the currents')
 ax.set_xlabel('circumferential [rad]')
 ax.set_ylabel('z-Axis [m]')
 fig.colorbar(im)
 plt.show()
 
+##%% Add additional constraints to the regularisation
+##% add conditions for balancing along each angular column
+##% => This ensures that the sum of currents along z=0 -> realizable as
+##% closed loops. As many equations as angular segments are needed
+#
 #eye_ang = np.eye(elm_angle.shape[1])
 #ElementFields_Add3D = np.repeat(eye_ang[:, :, np.newaxis], elm_angle.shape[0], axis=2)
 ##print('ElementFields_Add3D.shape ',ElementFields_Add3D.shape)
@@ -175,6 +192,7 @@ plt.show()
 #print('ElementFields_Balance.shape ',ElementFields_Balance.shape ) 
 #TargetField_Balance = np.concatenate((btarget, TargetFields_Add))
 #print('TargetField_Balance.shape ',TargetField_Balance.shape )
+##print('TargetField_Balance ',TargetField_Balance)
 #ElementCurrents_Balance = TikhonovReg(ElementFields_Balance, TargetField_Balance, 0.00005) #this time regularization is very different and depends on the above coefficient
 #print('ElementCurrents_Balance.shape ',ElementCurrents_Balance.shape )
 #ResultingField_Balance = Sensitivity[0]['ElementFields'] @ ElementCurrents_Balance
