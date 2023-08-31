@@ -20,16 +20,13 @@ r_coil = 0.4  # 800mm coil diameter
 
 arc_angle = 360 / segments_angular
 elm_angle, elm_z = np.meshgrid(np.arange(0, segments_angular) * arc_angle, np.arange(-half_length, half_length + len_step, len_step))
-#elm_angle, elm_z = np.meshgrid(np.arange(0, segments_angular) * arc_angle, np.arange(-half_length, half_length + len_step, len_step))
 #print('elm_angle', elm_angle )
 CoilDefinition[0] = {}  # Initialize CoilDefinition[1] as an empty dictionary
-#CoilDefinition[1] = {}  # Initialize CoilDefinition[1] as an empty dictionary
 CoilDefinition[0]['num_elements'] = elm_angle.shape
 
 elm_angle_shift = np.roll(elm_angle, -1, axis=1)
 #print('elm_angle_shift', elm_angle_shift )
 #elm_angle_shift = np.roll(elm_angle, -1, axis=0)
-
 
 # Define Cylindrical Main Surface
 CoilDefinition[0]['thin_wire_nodes_start'] = np.column_stack([np.cos(np.radians(elm_angle.flatten())) * r_coil, np.sin(np.radians(elm_angle.flatten())) * r_coil, elm_z.flatten()])
@@ -39,7 +36,6 @@ CoilDefinition[0]['thin_wire_nodes_stop'] = np.column_stack([np.cos(np.radians(e
 CoilDefinition[0]['num_elements'] = elm_angle.shape
 
 # Definition of target points in a 3D-volume
-
 TargetDefinition = {}
 TargetDefinition['shape'] = 'sphere'
 TargetDefinition['radius'] = 0.2
@@ -49,6 +45,8 @@ TargetDefinition['strength'] = 5e-3
 TargetDefinition['direction'] = 'y'
 
 target_points = Make_Target(TargetDefinition)
+print('target_points[][] ',target_points['points']['x1'])
+print('target_points[][] ',target_points['points']['x1'].shape)
 
 # plot target
 
@@ -123,6 +121,7 @@ ax.set_ylabel('z-Axis [m]')
 fig.colorbar(im)
 plt.show()
 
+####
 
 ElementCurrents = TikhonovReg(Sensitivity[0]['ElementFields'], btarget, 0.0077)
 #ElementCurrents = TikhonovReg(Sensitivity['ElementFields'], btarget, 0.0077)
@@ -137,15 +136,15 @@ ax.set_ylabel('z-Axis [m]')
 fig.colorbar(im)
 plt.show()
 
-####
+#####
 ElementCurrents_Balance_reshape = ElementCurrents.reshape(elm_angle.shape)
 
 Stream_Reg = np.cumsum(ElementCurrents_Balance_reshape[:,::-1], axis=1)
 Stream_Reg_rev = np.cumsum(ElementCurrents_Balance_reshape, axis=1)
 
 test = Stream_Reg.shape
-print('Stream_Reg.shape[0]',test)
-print('Stream_Reg',Stream_Reg)
+#print('Stream_Reg.shape[0]',test)
+#print('Stream_Reg',Stream_Reg)
 Stream = np.zeros((Stream_Reg.shape[0], Stream_Reg.shape[1]+1))
 #Stream = np.zeros(Stream_Reg.shape[0], Stream_Reg.shape[1]+1)
 Stream[:,1:] = Stream_Reg/2
@@ -164,167 +163,166 @@ ax.set_ylabel('z-Axis [m]')
 fig.colorbar(im)
 plt.show()
 
-eye_ang = np.eye(elm_angle.shape[1])
-ElementFields_Add3D = np.repeat(eye_ang[:, :, np.newaxis], elm_angle.shape[0], axis=2)
-print('ElementFields_Add3D.shape ',ElementFields_Add3D.shape)
-ElementFields_Add = ElementFields_Add3D.reshape(-1, elm_angle.shape[1])
-TargetFields_Add = np.zeros(elm_angle.shape[1])
-
-print('ElementFields_Add ElementFields_Add.shape', ElementFields_Add.shape)
-print("Sensitivity[0]['ElementFIelds'].shape", Sensitivity[0]['ElementFields'].shape)
-#ElementFields_Balance = np.vstack((Sensitivity[0]['ElementFields'], ElementFields_Add*5e-4)) #this coefficient controls the relative importance of the new equations
-ElementFields_Balance = np.vstack((Sensitivity[0]['ElementFields'], ElementFields_Add.T*5e-4)) #this coefficient controls the relative importance of the new equations
-print('ElementFields_Balance.shape ',ElementFields_Balance.shape ) 
-TargetField_Balance = np.concatenate((btarget, TargetFields_Add))
-print('TargetField_Balance.shape ',TargetField_Balance.shape )
-ElementCurrents_Balance = TikhonovReg(ElementFields_Balance, TargetField_Balance, 0.00005) #this time regularization is very different and depends on the above coefficient
-print('ElementCurrents_Balance.shape ',ElementCurrents_Balance.shape )
-ResultingField_Balance = Sensitivity[0]['ElementFields'] @ ElementCurrents_Balance
-
-fig = plt.figure()
-ax = fig.add_subplot(111)
-im = ax.imshow(ElementCurrents_Balance.reshape(elm_angle.shape), aspect='auto', cmap='jet')
-ax.set_title('Regularized currents with balance')
-ax.set_xlabel('circumferential [rad]')
-ax.set_ylabel('z-Axis [m]')
-fig.colorbar(im)
-plt.show()
-
-ElementCurrents_Balance_reshape = ElementCurrents_Balance.reshape(elm_angle.shape)
-
-Stream_Reg = np.cumsum(ElementCurrents_Balance_reshape[:,::-1], axis=1)
-Stream_Reg_rev = np.cumsum(ElementCurrents_Balance_reshape, axis=1)
-
-Stream = np.zeros((Stream_Reg.shape[0], Stream_Reg.shape[1]+1))
-Stream[:,1:] = Stream_Reg/2
-Stream[:,:-1] = Stream[:,:-1] - Stream_Reg_rev[:,::-1]/2
-
-fig = plt.figure()
-ax = fig.add_subplot(111)
-im = ax.imshow(Stream, aspect='auto', cmap='jet')
-ax.set_title('Stream function from integrating the currents')
-ax.set_xlabel('circumferential [rad]')
-ax.set_ylabel('z-Axis [m]')
-fig.colorbar(im)
-plt.show()
-
-
-fig = plt.figure()
-ax = fig.add_subplot(111)
-im = ax.imshow(Stream, aspect='auto', cmap='jet')
-ax.set_title('Stream function from integrating the currents')
-ax.set_xlabel('circumferential [rad]')
-ax.set_ylabel('z-Axis [m]')
-cont_max = np.max(Stream) * 0.98
-n_cont = 15
-contours = ax.contour(Stream.T, levels=np.linspace(-cont_max, cont_max, n_cont), colors='k', linewidths=2)
-ax.clabel(contours, inline=True, fontsize=8)
-fig.colorbar(im)
-plt.show()
-
-##%% 3D Plot of the stream function
-
-PlotCoord = CoilDefinition[0]['thin_wire_nodes_start']
-# Extract x, y, and z coordinates from PlotCoord
-sx = np.reshape(PlotCoord[:, 0], CoilDefinition[0]['num_elements'])
-sy = np.reshape(PlotCoord[:, 1], CoilDefinition[0]['num_elements'])
-sz = np.reshape(PlotCoord[:, 2], CoilDefinition[0]['num_elements'])
-
-# Fix the size of spatial locations
-sx_p = np.column_stack((sx, sx[:, 0]))
-sy_p = np.column_stack((sy, sy[:, 0]))
-
-sz_p = np.zeros(Stream.shape)
-sz_p[:, 1:] = sz / 2
-sz_p[:, :-1] = sz / 2 + sz_p[:, :-1]
-sz_p[:, 0] *= 2
-sz_p[:, -1] *= 2
-
-# Tiny Hack to plot all radial elements
-sx_ph = np.vstack((sx_p, sx_p[0, :]))
-sy_ph = np.vstack((sy_p, sy_p[0, :]))
-sz_ph = np.vstack((sz_p, sz_p[0, :]))
-Stream_p = np.vstack((Stream, Stream[0, :]))
-
-
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-surf = ax.plot_surface(sx_ph, sy_ph, sz_ph, rstride=1, cstride=1, facecolors=plt.cm.jet(Stream_p), shade=False)
-ax.set_xlabel('x-Axis [m]')
-ax.set_ylabel('y-Axis [m]')
-ax.set_zlabel('z-Axis [m]')
-ax.view_init(elev=-7, azim=25)
-fig.colorbar(surf)
-plt.title('Stream function in 3D representation')
-plt.show()
-
-
-# 3D Plot of the contours
-n_cont = 13
-cont_max_main = np.max(Stream) - 500
-print('cont_max_main.shape ',cont_max_main.shape )
-contour_levels = np.linspace(-cont_max_main, cont_max_main, num=n_cont, endpoint=True)
-
-fig, ax = plt.subplots()
-C1 = ax.contour(Stream.T, levels=contour_levels, colors='k', linewidths=2)
-
-# Assuming you have defined the variables 'C1', 'CoilDefinition', 'Stream', and 'r_coil'.
-
-fig = plt.figure()
-fig.suptitle('3D contours')
-fig.set_size_inches(5, 5)
-ax = fig.add_subplot(111, projection='3d')
-
-S = C1.allsegs[0]  # Assuming that 'C1' is a 'contour' object with only one level #??? ???
-
-nP = 0
-for i in range(len(S)):
-    sxp = r_coil * np.cos(S[i][:, 0] / CoilDefinition[nP]['num_elements'][1] * 2 * np.pi)
-    syp = r_coil * np.sin(S[i][:, 0] / CoilDefinition[nP]['num_elements'][1] * 2 * np.pi)
-    szp = S[i][:, 1] / len(Stream[0, :]) * CoilDefinition[nP]['Length'] - CoilDefinition[nP]['Length'] / 2
-
-    ax.plot(sxp, syp, szp, 'b', linewidth=1)
-
-ax.view_init(elev=-7, azim=25)
-ax.axis('tight')
-ax.set_xlabel('X')
-ax.set_ylabel('Y')
-ax.set_zlabel('Z')
-
-font_size = 12
-ax.tick_params(labelsize=font_size)
-
-plt.show()
-
-### 3D Plot of the contours and stream function
-# Assuming you have defined the variables 'C1', 'CoilDefinition', 'Stream', 'r_coil', 'sx_ph', 'sy_ph', and 'sz_ph'.
-
-fig = plt.figure()
-fig.suptitle('3D coil')
-fig.set_size_inches(5, 5)
-ax = fig.add_subplot(111, projection='3d')
-
-S = C1.allsegs[0]  # Assuming that 'C1' is a 'contour' object with only one level
-
-nP = 0
-for i in range(len(S)):
-    sxp = r_coil * np.cos(S[i][:, 0] / CoilDefinition[nP]['num_elements'][1] * 2 * np.pi)
-    syp = r_coil * np.sin(S[i][:, 0] / CoilDefinition[nP]['num_elements'][1] * 2 * np.pi)
-    szp = S[i][:, 1] / len(Stream[0, :]) * CoilDefinition[nP]['Length'] - CoilDefinition[nP]['Length'] / 2
-
-    ax.plot(sxp, syp, szp, 'k', linewidth=2)
-
-#ax.plot_surface(sx_ph, sy_ph, sz_ph )
-Stream_p = np.vstack((Stream_p, Stream_p[0, :]))
-ax.plot_surface(sx_ph, sy_ph, sz_ph, facecolors=plt.cm.viridis(Stream_p / np.max(Stream_p)), edgecolor='none')
-#ax.plot_surface(sx_ph, sy_ph, sz_ph, facecolors=Stream_p, edgecolors='none')
-ax.view_init(elev=-7, azim=25)
-ax.axis('tight')
-ax.axis('equal')
-ax.axis('off')
-
-font_size = 12
-ax.tick_params(labelsize=font_size)
-
-plt.show()
-
+#eye_ang = np.eye(elm_angle.shape[1])
+#ElementFields_Add3D = np.repeat(eye_ang[:, :, np.newaxis], elm_angle.shape[0], axis=2)
+##print('ElementFields_Add3D.shape ',ElementFields_Add3D.shape)
+#ElementFields_Add = ElementFields_Add3D.reshape(-1, elm_angle.shape[1])
+#TargetFields_Add = np.zeros(elm_angle.shape[1])
+#
+#print('ElementFields_Add ElementFields_Add.shape', ElementFields_Add.shape)
+#print("Sensitivity[0]['ElementFIelds'].shape", Sensitivity[0]['ElementFields'].shape)
+#ElementFields_Balance = np.vstack((Sensitivity[0]['ElementFields'], ElementFields_Add.T*5e-4)) #this coefficient controls the relative importance of the new equations
+#print('ElementFields_Balance.shape ',ElementFields_Balance.shape ) 
+#TargetField_Balance = np.concatenate((btarget, TargetFields_Add))
+#print('TargetField_Balance.shape ',TargetField_Balance.shape )
+#ElementCurrents_Balance = TikhonovReg(ElementFields_Balance, TargetField_Balance, 0.00005) #this time regularization is very different and depends on the above coefficient
+#print('ElementCurrents_Balance.shape ',ElementCurrents_Balance.shape )
+#ResultingField_Balance = Sensitivity[0]['ElementFields'] @ ElementCurrents_Balance
+#
+#fig = plt.figure()
+#ax = fig.add_subplot(111)
+#im = ax.imshow(ElementCurrents_Balance.reshape(elm_angle.shape), aspect='auto', cmap='jet')
+#ax.set_title('Regularized currents with balance')
+#ax.set_xlabel('circumferential [rad]')
+#ax.set_ylabel('z-Axis [m]')
+#fig.colorbar(im)
+#plt.show()
+#
+#ElementCurrents_Balance_reshape = ElementCurrents_Balance.reshape(elm_angle.shape)
+#
+#Stream_Reg = np.cumsum(ElementCurrents_Balance_reshape[:,::-1], axis=1)
+#Stream_Reg_rev = np.cumsum(ElementCurrents_Balance_reshape, axis=1)
+#
+#Stream = np.zeros((Stream_Reg.shape[0], Stream_Reg.shape[1]+1))
+#Stream[:,1:] = Stream_Reg/2
+#Stream[:,:-1] = Stream[:,:-1] - Stream_Reg_rev[:,::-1]/2
+#
+#fig = plt.figure()
+#ax = fig.add_subplot(111)
+#im = ax.imshow(Stream, aspect='auto', cmap='jet')
+#ax.set_title('Stream function from integrating the currents')
+#ax.set_xlabel('circumferential [rad]')
+#ax.set_ylabel('z-Axis [m]')
+#fig.colorbar(im)
+#plt.show()
+#
+#
+#fig = plt.figure()
+#ax = fig.add_subplot(111)
+#im = ax.imshow(Stream, aspect='auto', cmap='jet')
+#ax.set_title('Stream function from integrating the currents')
+#ax.set_xlabel('circumferential [rad]')
+#ax.set_ylabel('z-Axis [m]')
+#cont_max = np.max(Stream) * 0.98
+#n_cont = 15
+#contours = ax.contour(Stream.T, levels=np.linspace(-cont_max, cont_max, n_cont), colors='k', linewidths=2)
+#ax.clabel(contours, inline=True, fontsize=8)
+#fig.colorbar(im)
+#plt.show()
+#
+###%% 3D Plot of the stream function
+#
+#PlotCoord = CoilDefinition[0]['thin_wire_nodes_start']
+## Extract x, y, and z coordinates from PlotCoord
+#sx = np.reshape(PlotCoord[:, 0], CoilDefinition[0]['num_elements'])
+#sy = np.reshape(PlotCoord[:, 1], CoilDefinition[0]['num_elements'])
+#sz = np.reshape(PlotCoord[:, 2], CoilDefinition[0]['num_elements'])
+#
+## Fix the size of spatial locations
+#sx_p = np.column_stack((sx, sx[:, 0]))
+#sy_p = np.column_stack((sy, sy[:, 0]))
+#
+#sz_p = np.zeros(Stream.shape)
+#sz_p[:, 1:] = sz / 2
+#sz_p[:, :-1] = sz / 2 + sz_p[:, :-1]
+#sz_p[:, 0] *= 2
+#sz_p[:, -1] *= 2
+#
+## Tiny Hack to plot all radial elements
+#sx_ph = np.vstack((sx_p, sx_p[0, :]))
+#sy_ph = np.vstack((sy_p, sy_p[0, :]))
+#sz_ph = np.vstack((sz_p, sz_p[0, :]))
+#Stream_p = np.vstack((Stream, Stream[0, :]))
+#
+#
+#fig = plt.figure()
+#ax = fig.add_subplot(111, projection='3d')
+#surf = ax.plot_surface(sx_ph, sy_ph, sz_ph, rstride=1, cstride=1, facecolors=plt.cm.jet(Stream_p), shade=False)
+#ax.set_xlabel('x-Axis [m]')
+#ax.set_ylabel('y-Axis [m]')
+#ax.set_zlabel('z-Axis [m]')
+#ax.view_init(elev=-7, azim=25)
+#fig.colorbar(surf)
+#plt.title('Stream function in 3D representation')
+#plt.show()
+#
+#
+## 3D Plot of the contours
+#n_cont = 13
+#cont_max_main = np.max(Stream) - 500
+#print('cont_max_main.shape ',cont_max_main.shape )
+#contour_levels = np.linspace(-cont_max_main, cont_max_main, num=n_cont, endpoint=True)
+#
+#fig, ax = plt.subplots()
+#C1 = ax.contour(Stream.T, levels=contour_levels, colors='k', linewidths=2)
+#
+## Assuming you have defined the variables 'C1', 'CoilDefinition', 'Stream', and 'r_coil'.
+#
+#fig = plt.figure()
+#fig.suptitle('3D contours')
+#fig.set_size_inches(5, 5)
+#ax = fig.add_subplot(111, projection='3d')
+#
+#S = C1.allsegs[0]  # Assuming that 'C1' is a 'contour' object with only one level #??? ???
+#
+#nP = 0
+#for i in range(len(S)):
+#    sxp = r_coil * np.cos(S[i][:, 0] / CoilDefinition[nP]['num_elements'][1] * 2 * np.pi)
+#    syp = r_coil * np.sin(S[i][:, 0] / CoilDefinition[nP]['num_elements'][1] * 2 * np.pi)
+#    szp = S[i][:, 1] / len(Stream[0, :]) * CoilDefinition[nP]['Length'] - CoilDefinition[nP]['Length'] / 2
+#
+#    ax.plot(sxp, syp, szp, 'b', linewidth=1)
+#
+#ax.view_init(elev=-7, azim=25)
+#ax.axis('tight')
+#ax.set_xlabel('X')
+#ax.set_ylabel('Y')
+#ax.set_zlabel('Z')
+#
+#font_size = 12
+#ax.tick_params(labelsize=font_size)
+#
+#plt.show()
+#
+#### 3D Plot of the contours and stream function
+## Assuming you have defined the variables 'C1', 'CoilDefinition', 'Stream', 'r_coil', 'sx_ph', 'sy_ph', and 'sz_ph'.
+#
+#fig = plt.figure()
+#fig.suptitle('3D coil')
+#fig.set_size_inches(5, 5)
+#ax = fig.add_subplot(111, projection='3d')
+#
+#S = C1.allsegs[0]  # Assuming that 'C1' is a 'contour' object with only one level
+#
+#nP = 0
+#for i in range(len(S)):
+#    sxp = r_coil * np.cos(S[i][:, 0] / CoilDefinition[nP]['num_elements'][1] * 2 * np.pi)
+#    syp = r_coil * np.sin(S[i][:, 0] / CoilDefinition[nP]['num_elements'][1] * 2 * np.pi)
+#    szp = S[i][:, 1] / len(Stream[0, :]) * CoilDefinition[nP]['Length'] - CoilDefinition[nP]['Length'] / 2
+#
+#    ax.plot(sxp, syp, szp, 'k', linewidth=2)
+#
+##ax.plot_surface(sx_ph, sy_ph, sz_ph )
+#Stream_p = np.vstack((Stream_p, Stream_p[0, :]))
+#ax.plot_surface(sx_ph, sy_ph, sz_ph, facecolors=plt.cm.viridis(Stream_p / np.max(Stream_p)), edgecolor='none')
+##ax.plot_surface(sx_ph, sy_ph, sz_ph, facecolors=Stream_p, edgecolors='none')
+#ax.view_init(elev=-7, azim=25)
+#ax.axis('tight')
+#ax.axis('equal')
+#ax.axis('off')
+#
+#font_size = 12
+#ax.tick_params(labelsize=font_size)
+#
+#plt.show()
+#
